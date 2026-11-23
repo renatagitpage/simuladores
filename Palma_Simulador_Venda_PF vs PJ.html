@@ -1,1 +1,72 @@
-<!doctype html><html lang="pt-BR"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>PALMA | Ponto de Equilíbrio PF × PJ</title><style>:root{font-family:Inter,Arial,sans-serif;color:#21352f;background:#f4f7f5}*{box-sizing:border-box}body{margin:0;padding:28px}main{max-width:1000px;margin:auto}.eyebrow{font-size:12px;letter-spacing:2px;color:#547b67;font-weight:800}h1{font-size:clamp(25px,4vw,39px);margin:8px 0}p{color:#61746a;line-height:1.55}.panel{background:white;border:1px solid #dae6dd;border-radius:18px;padding:24px;margin-top:18px;box-shadow:0 6px 20px #1c4c2d0a}.controls{display:grid;grid-template-columns:1fr 1fr;gap:26px}.controlhead{display:flex;justify-content:space-between;align-items:center;gap:12px}label{font-weight:700}output{font-size:22px;font-weight:800;color:#156342}input[type=range]{width:100%;accent-color:#19734c;margin:17px 0}input[type=number]{padding:10px;border:1px solid #b7c9be;border-radius:9px;width:150px;font-size:16px}.summary{display:grid;grid-template-columns:repeat(3,1fr);gap:12px}.metric{background:#f1f6f2;padding:18px;border-radius:12px}.metric small{display:block;color:#6b8074;margin-bottom:8px}.metric strong{font-size:21px}.winner{background:#e4f3e8;border:1px solid #b7dbc4}.winner strong{color:#17613b}.bars{display:grid;gap:14px}.barline{display:grid;grid-template-columns:165px 1fr 140px;gap:12px;align-items:center;font-size:14px}.track{background:#e8eeea;border-radius:8px;height:19px;overflow:hidden}.fill{height:100%;border-radius:8px;background:#739f87}.barline.best .fill{background:#18754d}.barline.best{font-weight:800}.tablewrap{overflow-x:auto}table{border-collapse:collapse;width:100%;font-size:14px}th,td{padding:12px;text-align:right;border-bottom:1px solid #e3ebe5}th:first-child,td:first-child{text-align:left}th{color:#667c6e;font-size:12px}.hint{font-size:12px;color:#78867e}.row{display:flex;align-items:center;gap:10px;flex-wrap:wrap}@media(max-width:700px){body{padding:12px}.controls,.summary{grid-template-columns:1fr}.barline{grid-template-columns:105px 1fr 105px;gap:6px;font-size:12px}.panel{padding:16px}.metric strong{font-size:18px}}</style></head><body><main><div class="eyebrow">PALMA · SIMULADORES</div><h1>PF × PJ — ponto de equilíbrio</h1><p>Arraste o <b>preço de venda</b> e o <b>markup sobre o custo fiscal</b> para explorar a rentabilidade líquida de cada regime. Reconstruído a partir da planilha “Palma Ltda — Ponto Equilíbrio — Sem Adicional IRPJ”.</p><section class="panel controls"><div><div class="controlhead"><label for="sale">Preço de venda</label><output id="saleOut"></output></div><input id="sale" type="range" min="100000" max="5000000" step="10000" value="500000"><div class="hint">R$ 100 mil a R$ 5 milhões</div></div><div><div class="controlhead"><label for="markup">Markup (venda ÷ custo)</label><output id="markupOut"></output></div><input id="markup" type="range" min="1" max="4" step="0.01" value="1.32"><div class="hint">1,00× a 4,00× · custo fiscal = venda ÷ markup</div></div></section><section class="panel"><h2>RBT12 — Simples Nacional</h2><div class="controlhead"><label for="rbt">Receita bruta dos 12 meses anteriores</label><output id="rbtOut"></output></div><input id="rbt" type="range" min="0" max="4800000" step="10000" value="1790000"><div class="row"><label for="rbtNumber">Valor exato (R$)</label><input type="number" id="rbtNumber" min="0" max="4800000" step="1000" value="1790000"></div><p class="hint">Ajuste pela barra ou digite o valor. O resultado do Simples é recalculado automaticamente. Faixas do Anexo I e exclusão da parcela de ICMS conforme o modelo original. A 6ª faixa exige análise específica.</p></section><section class="panel"><div class="summary"><div class="metric"><small>Custo fiscal estimado</small><strong id="cost"></strong></div><div class="metric"><small>Lucro antes dos tributos</small><strong id="gross"></strong></div><div class="metric winner"><small>Regime com melhor resultado</small><strong id="winner"></strong></div></div></section><section class="panel"><h2>Resultado líquido por regime</h2><div class="bars" id="bars"></div></section><section class="panel"><h2>Detalhamento dos tributos</h2><div class="tablewrap"><table><thead><tr><th>Regime</th><th>Impostos estimados</th><th>Lucro líquido</th><th>Margem líquida / venda</th></tr></thead><tbody id="rows"></tbody></table></div><p class="hint">O modelo replica as fórmulas simplificadas da planilha. Não contempla custos de manutenção da PJ, corretagem, ITBI, custos cartorários ou tributação posterior da distribuição de lucros.</p></section><p class="hint">PF: 15% do ganho (modelo simplificado). Lucro Presumido: 2,28% + 3,65% da venda. Lucro Real: 24% do lucro + 3,65% da venda. Sem adicional de IRPJ. Para imóveis adquiridos e revendidos em prazo curto; imóveis antigos de herança são objeto de estudo separado.</p></main><script>const $=id=>document.getElementById(id),brl=n=>n.toLocaleString('pt-BR',{style:'currency',currency:'BRL',maximumFractionDigits:0}),pct=n=>(100*n).toLocaleString('pt-BR',{maximumFractionDigits:2})+'%',faixas=[[0,.04,0,.34],[180000.01,.073,5940,.34],[360000.01,.095,13860,.335],[720000.01,.107,22500,.335],[1800000.01,.143,87300,.335],[3600000.01,.19,378000,0]];function calc(){let sale=+$('sale').value,m=+$('markup').value,cost=sale/m,gross=sale-cost,rbt=Math.max(0,+$('rbt').value||0),f=faixas[0];for(let x of faixas)if(rbt>=x[0])f=x;let eff=rbt<=0?0:Math.max(0,(rbt*f[1]-f[2])/rbt)*(1-f[3]);let data=[['Pessoa Física',gross*.15],['Lucro Presumido',sale*(.0228+.0365)],['Lucro Real',gross*.24+sale*.0365],['Simples Nacional',sale*eff]].map(([name,tax])=>({name,tax,net:gross-tax}));let best=Math.max(...data.map(x=>x.net)),winner=data.find(x=>x.net===best);$('rbtOut').textContent=brl(rbt);$('saleOut').textContent=brl(sale);$('markupOut').textContent=m.toLocaleString('pt-BR',{minimumFractionDigits:2,maximumFractionDigits:2})+'×';$('cost').textContent=brl(cost);$('gross').textContent=brl(gross);$('winner').textContent=winner.name;let min=Math.min(0,...data.map(x=>x.net)),max=Math.max(1,...data.map(x=>x.net));$('bars').innerHTML=data.map(x=>`<div class="barline ${x.net===best?'best':''}"><span>${x.name}</span><div class="track"><div class="fill" style="width:${Math.max(0,100*(x.net-min)/(max-min))}%"></div></div><span style="text-align:right">${brl(x.net)}</span></div>`).join('');$('rows').innerHTML=data.map(x=>`<tr><td>${x.name}</td><td>${brl(x.tax)}</td><td><b>${brl(x.net)}</b></td><td>${pct(x.net/sale)}</td></tr>`).join('')}['sale','markup'].forEach(id=>$(id).addEventListener('input',calc));$('rbt').addEventListener('input',()=>{$('rbtNumber').value=$('rbt').value;calc()});$('rbtNumber').addEventListener('input',()=>{$('rbt').value=Math.min(4800000,Math.max(0,+$('rbtNumber').value||0));calc()});calc();</script></body></html>
+<!doctype html>
+<html lang="pt-BR">
+<head>
+<meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<title>PALMA | Pontos de equilíbrio tributário</title>
+<style>
+:root{font-family:Inter,system-ui,-apple-system,Segoe UI,sans-serif;color:#23322f;background:#f5f6f3}
+*{box-sizing:border-box}body{margin:0;padding:32px 16px}.wrap{max-width:830px;margin:auto}
+.eyebrow{color:#2b846b;font-size:12px;font-weight:800;letter-spacing:2px}h1{font-size:clamp(24px,4vw,35px);margin:10px 0 8px}p{line-height:1.55;color:#65726e;margin:0 0 22px}
+.card{background:white;border:1px solid #dfe6e1;border-radius:18px;padding:26px;box-shadow:0 6px 24px #203b3010}
+.controls{display:grid;grid-template-columns:1fr 1fr;gap:26px}.fieldhead{display:flex;justify-content:space-between;align-items:center;gap:12px;margin-bottom:13px}
+label{font-size:14px;font-weight:700}.number{font-size:17px;font-weight:750;color:#263d35;border:1px solid #dbe3df;border-radius:9px;padding:9px 10px;width:155px;text-align:right;background:#fafcfb}
+input[type=range]{width:100%;accent-color:#168669;cursor:pointer}small{font-size:12px;color:#73817c}
+.separator{border:0;border-top:1px solid #e6ece8;margin:27px 0}.winnerlabel{font-size:12px;color:#6d7975}.winner{font-size:25px;font-weight:800;margin:7px 0 20px}
+.barline{display:grid;grid-template-columns:155px 1fr 72px;align-items:center;gap:13px;margin:13px 0}.name{font-size:13px}
+.track{height:13px;background:#eef1ef;border-radius:20px;overflow:hidden}.fill{height:100%;background:#a5b0b5;border-radius:20px;transition:width .2s}.fill.best{background:#18866c}
+.rate{text-align:right;font-size:14px;font-variant-numeric:tabular-nums}
+.details{display:grid;grid-template-columns:repeat(3,1fr);gap:12px;margin-top:24px}.detail{background:#f7f9f7;padding:15px;border-radius:12px}
+.detail small{display:block}.detail strong{font-size:20px;display:block;margin-top:7px}
+.note{font-size:12px;color:#78847f;line-height:1.6;margin-top:22px}.note strong{color:#52615b}
+@media(max-width:620px){.controls,.details{grid-template-columns:1fr}.card{padding:18px}.barline{grid-template-columns:110px 1fr 60px;gap:7px}.name{font-size:12px}.rate{font-size:12px}}
+</style>
+</head>
+<body><main class="wrap">
+<div class="eyebrow">PALMA · SIMULADOR</div>
+<h1>Pontos de equilíbrio tributário</h1>
+<p>Compare a carga tributária de quatro regimes com apenas duas variáveis: markup e receita bruta dos últimos 12 meses (RBT12).</p>
+<section class="card">
+<div class="controls">
+<div><div class="fieldhead"><label for="markup">Markup</label><input class="number" id="markup" type="number" min="1.01" max="10" step=".01" value="1.66"></div><input id="markupRange" type="range" min="1.05" max="3" step=".01" value="1.66"><small>Preço de venda ÷ custo de aquisição</small></div>
+<div><div class="fieldhead"><label for="rbt">RBT12 (R$)</label><input class="number" id="rbt" type="number" min="1" max="4800000" step="10000" value="1270000"></div><input id="rbtRange" type="range" min="1000" max="4800000" step="1000" value="1270000"><small>Receita anterior ao mês da venda</small></div>
+</div>
+<hr class="separator">
+<div class="winnerlabel">Regime com menor imposto na simulação</div><div class="winner" id="winner" aria-live="polite">—</div>
+<div id="bars"></div>
+<div class="details"><div class="detail"><small>PF × Presumido: markup</small><strong>1,65</strong></div><div class="detail"><small>Simples × Presumido: RBT12</small><strong id="cross">—</strong></div><div class="detail"><small>Diferença entre maior e menor imposto</small><strong id="spread">—</strong></div></div>
+<div class="note"><strong>Premissas da planilha PALMA — versão sem adicional de IRPJ.</strong> PF: 15% sobre o ganho; Lucro Presumido: 2,28% (IRPJ + CSLL) + 3,65% (PIS + Cofins) sobre a venda; Lucro Real: 24% sobre o lucro + 3,65% sobre a venda; Simples: Anexo I com dedução da parcela de ICMS conforme a tabela da planilha. Os percentuais são equivalentes sobre o preço de venda. O modelo não considera adicional trimestral de IRPJ, custos fixos, elegibilidade dos regimes, regras de início de atividade ou particularidades da reforma tributária. A sexta faixa do Simples exige validação específica. Uso gerencial, não apuração fiscal.</div>
+</section></main>
+<script>
+const bands=[
+ {floor:0,rate:.04,ded:0,icms:.34},
+ {floor:180000.01,rate:.073,ded:5940,icms:.34},
+ {floor:360000.01,rate:.095,ded:13860,icms:.335},
+ {floor:720000.01,rate:.107,ded:22500,icms:.335},
+ {floor:1800000.01,rate:.143,ded:87300,icms:.335},
+ {floor:3600000.01,rate:.19,ded:378000,icms:0}
+];
+const el=id=>document.getElementById(id);
+const pct=x=>(100*x).toLocaleString('pt-BR',{minimumFractionDigits:2,maximumFractionDigits:2})+'%';
+const money=x=>x.toLocaleString('pt-BR',{style:'currency',currency:'BRL',maximumFractionDigits:0});
+function calcSN(rbt){const b=bands.reduce((a,b)=>rbt>=b.floor?b:a,bands[0]);return rbt<=0?0:Math.max(0,(rbt*b.rate-b.ded)/rbt)*(1-b.icms)}
+function update(){
+ const m=Number(el('markup').value),r=Number(el('rbt').value);
+ if(!(m>1&&r>0)){el('winner').textContent='Informe valores válidos';el('bars').innerHTML='';return}
+ const values=[
+ {name:'Pessoa Física',tax:.15*(m-1)/m},
+ {name:'Simples Nacional',tax:calcSN(r)},
+ {name:'Lucro Presumido',tax:.0228+.0365},
+ {name:'Lucro Real',tax:.24*(m-1)/m+.0365}
+ ];
+ const min=Math.min(...values.map(x=>x.tax)),max=Math.max(...values.map(x=>x.tax));
+ const winner=values.find(x=>Math.abs(x.tax-min)<1e-10);
+ el('winner').textContent=winner.name;
+ el('bars').innerHTML=values.map(x=>`<div class="barline"><span class="name">${x.name}</span><div class="track"><div class="fill ${x===winner?'best':''}" style="width:${Math.min(100,x.tax/.30*100)}%"></div></div><span class="rate">${pct(x.tax)}</span></div>`).join('');
+ el('spread').textContent=pct(max-min);
+}
+function connect(input,range){el(input).addEventListener('input',()=>{const n=Number(el(input).value);if(Number.isFinite(n)){el(range).value=n}update()});el(range).addEventListener('input',()=>{el(input).value=el(range).value;update()})}
+connect('markup','markupRange');connect('rbt','rbtRange');
+let lo=720000,hi=1800000;for(let i=0;i<55;i++){let mid=(lo+hi)/2;if(calcSN(mid)<.0593)lo=mid;else hi=mid}
+el('cross').textContent=money((lo+hi)/2);
+update();
+</script></body></html>
